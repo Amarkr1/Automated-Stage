@@ -22,7 +22,7 @@ function varargout = FineAllignment(varargin)
 
 % Edit the above text to modify the response to help FineAllignment
 
-% Last Modified by GUIDE v2.5 19-Jul-2017 16:18:29
+% Last Modified by GUIDE v2.5 09-Sep-2017 12:25:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -193,20 +193,16 @@ function done_Callback(hObject, eventdata, handles)
 % hObject    handle to done (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-wavelength = str2double(get(handles.wavelength,'String'));
-set(handles.wavelength,'String',num2str(wavelength));
-power = str2double(get(handles.power,'String'));
-step = str2num(get(handles.step,'String'));
-threshold = str2double(get(handles.threshold,'String'));
-window = str2num(get(handles.window, 'String'));
-detector1 =  str2num(get(handles.detector1,'String'));
-if(size(detector1)==0)
-    detector1=5;
-end
-detector2 =  str2num(get(handles.detector2,'String'));
+param_align.wavelength = str2double(get(handles.wavelength,'String'));
+set(handles.wavelength,'String',num2str(param_align.wavelength));
+param_align.power = str2double(get(handles.power,'String'));
+param_align.step = str2num(get(handles.step,'String'));
+param_align.threshold = str2double(get(handles.threshold,'String'));
+param_align.window = str2num(get(handles.window, 'String'));
+contents = cellstr(get(handles.popupmenu3,'String')); 
+param_align.det_main = contents{get(handles.popupmenu3,'Value')};
 guidata(hObject,handles)
-array = [wavelength, power, step, threshold, window, detector1, detector2];
-save('parFineAllign.mat','array');
+save('parFineAlign.mat','param_align');
 saveState(handles)
 delete(hObject);
 close
@@ -217,8 +213,7 @@ state.power = str2double(get(handles.power,'String'));
 state.step = str2num(get(handles.step,'String'));
 state.threshold = str2double(get(handles.threshold,'String'));
 state.window = str2num(get(handles.window, 'String'));
-state.detector1 =  str2num(get(handles.detector1,'String'));
-state.detector2 =  str2num(get(handles.detector2,'String'));
+state.det_main = get(handles.popupmenu3,'Value');
 save('state.mat','state')
 
 function loadState(handles)
@@ -230,8 +225,7 @@ if exist(fileName)
     set(handles.step,'String',state.step);
     set(handles.threshold,'String',state.threshold);
     set(handles.window,'String',state.window);
-    set(handles.detector1,'String',state.detector1);
-    set(handles.detector2,'String',state.detector2);
+    set(handles.popupmenu3,'Value',state.det_main);
     delete(fileName);
 end
 
@@ -294,6 +288,29 @@ function detector2_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function detector2_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to detector2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in popupmenu3.
+function popupmenu3_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu3 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu3
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu3 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 

@@ -780,18 +780,66 @@ end
 [IL_max_dets,i_max_row]=max(powerMatrix(:,det_main+4));
 [IL_max,i_max_det]=max(IL_max_dets);
 
+% powerDetector1 = param_align.detector1 + 4;
+% powerDetector2 = param_align.detector2 + 4;
+% [M1,I1]=max(powerMatrix(:,powerDetector1))
+% [M2,I2]=max(powerMatrix(:,powerDetector2))
+
+% %--------------prev threshold calc technique-----------------
+% if(max(powerMatrix(:,powerDetector1))<threshold)
+%     warndlg({'For this threshold its not possible to allign to Detector 1'},'Detecting very Low power detected');
+% else
+%     
+%     req_row = powerMatrix(I1,:);
+%     max_x_pos = req_row(1);
+%     max_y_pos = req_row(2);
+%     [row column] = size(powerMatrix);
+%     current_x_pos = powerMatrix(row,1);
+%     current_y_pos = powerMatrix(row,2);
+%     [curr_x, curr_y, ~] = handles.stage.getPosition()
+%     %return the stage to the origin position
+%     handles.stage.move_x(-current_x_pos);
+%     handles.stage.move_y(-current_y_pos);
+%     [init_x, init_y, ~] = handles.stage.getPosition()
+%     %now move the stage to the optimized position
+%     handles.stage.move_x(max_x_pos);
+%     handles.stage.move_y(max_y_pos);
+%     [optim_x, optim_y, ~] = handles.stage.getPosition()
+% end
+% %-----------------------------------------------------------------------------------
 %new threshold calc technique
 if IL_max>param_align.threshold   
-    max_x_pos = powerMatrix(i_max_row(i_max_det),1);
-    max_y_pos = powerMatrix(i_max_row(i_max_det),2);
+    max_x_pos = powerMatrix(i_max,1);
+    max_y_pos = powerMatrix(i_max,2);
     current_x_pos = powerMatrix(end,1);
     current_y_pos = powerMatrix(end,2);
+%     [curr_x, curr_y, ~] = handles.stage.getPosition();
     %return the stage to the origin position
     handles.stage.move_x(-current_x_pos+max_x_pos);
     handles.stage.move_y(-current_y_pos+max_y_pos);
-
+%     [init_x, init_y, ~] = handles.stage.getPosition();
+    %now move the stage to the optimized position
+%     handles.stage.move_x();
+%     handles.stage.move_y();
+%     [optim_x, optim_y, ~] = handles.stage.getPosition()
+% elseif (max(powerMatrix(:,powerDetector2))>param_align.threshold)
+%     req_row = powerMatrix(I2,:);
+%     max_x_pos = req_row(1);
+%     max_y_pos = req_row(2);
+%     [row column] = size(powerMatrix);
+%     current_x_pos = powerMatrix(row,1);
+%     current_y_pos = powerMatrix(row,2);
+%     [curr_x, curr_y, ~] = handles.stage.getPosition()
+%     %return the stage to the origin position
+%     handles.stage.move_x(-current_x_pos);
+%     handles.stage.move_y(-current_y_pos);
+%     [init_x, init_y, ~] = handles.stage.getPosition()
+%     %now move the stage to the optimized position
+%     handles.stage.move_x(max_x_pos);
+%     handles.stage.move_y(max_y_pos);
+%     [optim_x, optim_y, ~] = handles.stage.getPosition() 
 else
-     warndlg({strcat('For this threshold it''s not possible to align to either of detectors:  ',num2str(param_align.det_main))},'Detecting very Low power detected');
+     warndlg({strcat('For this threshold it''s not possible to align to either of detectors:  ',num2str(param_align.det_main)},'Detecting very Low power detected');
 end
 %-----------------------------------------------------------------------------------
 % guidata(handles)
