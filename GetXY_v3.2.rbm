@@ -1,0 +1,134 @@
+# Description: Added regular expression pattern matching to device label parsing.
+#              Device names and comments with underscores are no longer truncated.
+#              For now, comments are appended to the device name to ensure a unique name
+#              Applies global gds coordinate transformation to extracted coordinates
+#              so there is no need to first flatten the top cell
+#
+# Notes: Writes coordiantes files for Micos Setup
+#
+# Modified: 04/03/2014
+# Author: Jonas Flueckiger, Mauricio Reis, Mike Caverley
+#
+
+
+class MenuAction < RBA::Action
+  def initialize( title, shortcut, &action ) 
+    self.title = title
+    self.shortcut = shortcut
+    @action = action
+  end
+  def triggered 
+    @action.call( self ) 
+  end
+private
+  @action
+end
+
+#
+
+$write_xy_2file = MenuAction.new("X and Y coordinates to text file v3.2", "") do
+
+  app = RBA::Application.instance
+  mw = app.main_window 
+  lv = mw.current_view
+
+    if lv ==nil
+        raise "No view selected"
+    end
+  
+  cv = lv.active_cellview
+  
+    if !cv.is_valid?
+        raise "no cell or no layout found"
+    end
+
+  current_index = cv.cell_index
+  cv = lv.cellview(0).layout #cell view 0: top cell 
+  num_layers = cv.layers
+
+  input_text = RBA::InputDialog.get_string("Add the Label that you want the coordinates for", "Label: ", "opt_in")
+  
+  if input_text.has_value?
+  
+    #Choose a file to save the data
+    puts('GDS is scanning for label: '+input_text.to_s)
+    puts(input_text.to_s)
+    FILE_OUT=RBA::FileDialog.get_save_file_name("CG_XY_coordiantes", ".","All files (*)")
+
+    if FILE_OUT.has_value?
+
+        file=File.open(FILE_OUT.value, "w") 
+        #Header line
+        file.puts('%<X-coord>,<Y-coord>,<Polarization>,<wavelength>,<type>,<deviceID>,<comment>')
+
+        ly = RBA::Application::instance.main_window.current_view.active_cellview.layout
+        ly.layer_indices.each do |layer|  
+            ly.each_top_cell do |top|
+                count = 0
+                input_count = 1  
+                iter = ly.begin_shapes(top, layer)
+                while !iter.at_end?        
+                    if iter.shape.is_text?
+		                device_string = iter.shape.text.string
+                        if device_string.include? input_text.to_s
+		                    puts(device_string)
+		                    match_obj = device_string.to_s.match(/#{input_text.to_s}_([a-zA-Z]+)_?(\d+)_([a-zA-Z]+)_?(.*)/)
+		                    out_string = Array.new
+		                    if match_obj.nil?
+		                        puts('No regex match')
+		                        out_string[0]="TE"
+		                        out_string[1]="1550"
+		                        out_string[2]="badLabel"
+		                        out_string[3]=("badlabel_"+device_string.to_s)
+		                        out_string[4]="no commment"
+                           else   
+                            match_str = match_obj.captures;
+		                        out_string[0]=match_str[0]
+		                        out_string[1]=match_str[1]
+                            if match_str[2] == "device"
+		                          out_string[2]=match_str[2]
+		                          out_string[3]=match_str[3]
+                            else
+                              out_string[2]="device"
+                              out_string[3]=match_str[2]+"_"+match_str[3]
+                            end
+		                        out_string[4]="no_comment"
+		                    end
+		                     
+		                    t = iter.shape.text.transformed_cplx(iter.trans); 
+		                    x1 = t.trans.disp.x.to_f/1000.to_f
+		                    y1 = t.trans.disp.y.to_f/1000.to_f
+                                   
+                            puts(x1.to_s);
+                            puts(y1.to_s);	                            
+                            puts(out_string[0]);                        
+                            puts(out_string[1]);                        
+                            puts(out_string[2]);                        
+                            puts(out_string[3]);                        
+                            puts(out_string[4]);
+                            puts(input_count.to_s);
+                                   
+		                    out_string[3].to_s.gsub!('-','_') #replace all '-' by '_'; matlab does not allow '-' in variable names
+		                    out_string[3].to_s.gsub!('.','_') #replace all '.' by '_'; matlab does not allwo '.' in varaible names	
+		                    out_string[3].to_s.gsub!(' ','_') #replace all spaces by '_'; matlab does not allow /s in variable names    
+                            file.puts(x1.to_s + ',' + y1.to_s  + ',' + out_string[0] + ',' + out_string[1] + ','+out_string[2]+','+ out_string[3]+'_'+input_count.to_s+','+out_string[4])
+                            input_count += 1
+                        end
+                        count += 1
+                    end   
+                    iter.next              
+                end
+            end
+        end
+        file.close
+	end  
+  end
+
+end
+
+app = RBA::Application.instance
+mw = app.main_window
+
+menu = mw.menu
+menu.insert_separator("tools_menu.end", "OutputXY2File")
+menu.insert_item("tools_menu.end", "OutputXY2File", $write_xy_2file) 

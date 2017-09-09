@@ -1,0 +1,37 @@
+<CT400>
+    <About>
+        <Release Value="v 1.0.0" />
+        <Source>
+            <TLS Name="1" Available="Yes" />
+            <TLS Name="2" Available="Yes" />
+            <TLS Name="3" Available="Yes" />
+            <TLS Name="4" Available="Yes" />
+        </Source>
+        <Detector_Array TLS1="Yes" TLS2="Yes" TLS3="Yes" TLS4="Yes" />
+    </About>
+    <Configuration>
+        <Sources>
+            <Common Power="1.000000" Lambda_Min="1510.000000" Lambda_Max="1580.000000" />
+            <Source Name="TLS_0" Enable="True" Address="3" Lambda_Min="1510.000000" Lambda_Max="1580.000000" Type="TunicsPlus" />
+            <Source Name="TLS_1" Enable="False" Address="1" Lambda_Min="1310.000000" Lambda_Max="1620.000000" Type="TunicsPlus" />
+            <Source Name="TLS_2" Enable="False" Address="1" Lambda_Min="1310.000000" Lambda_Max="1620.000000" Type="TunicsPlus" />
+            <Source Name="TLS_3" Enable="False" Address="1" Lambda_Min="1310.000000" Lambda_Max="1620.000000" Type="TunicsPlus" />
+        </Sources>
+        <Application>
+            <Cursor Visible="False" Cursor="True" Marker="False" />
+            <Sampling_Step Value="3" />
+            <Trigger Value="False" />
+            <External_Synchronization Value="False" />
+            <Detector_Array Enable2="True" Enable3="True" Enable4="True" EnableExt="False" EnableOrl="False" />
+            <Measurement Type="Single" Is_Scan_Max_Used="False" Scan_Number="0" />
+            <Zoom Status="WaveLength" />
+        </Application>
+    </Configuration>
+    <Scan>
+        <Line_detection Data="1 1570.722 " />
+        <Curve Name="1" NbPoints="11641" NbScan="1" IsMinMaxSerie="False" />
+        <Curve Name="2" NbPoints="11641" NbScan="1" IsMinMaxSerie="False" />
+        <Curve Name="3" NbPoints="11641" NbScan="1" IsMinMaxSerie="False" />
+        <Curve Name="4" NbPoints="11641" NbScan="1" IsMinMaxSerie="False" />
+    </Scan>
+</CT400>
