@@ -296,7 +296,9 @@ function sweepButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 performSweep(handles)
+setPower_Callback(hObject, eventdata, handles);
 guidata(hObject,handles);
+
 
 function performSweep(handles)
 contents = cellstr(get(handles.laserSlot,'String'));
@@ -306,14 +308,14 @@ power = str2num(get(handles.sweepPower,'String'));
 startWavelength = str2num(get(handles.startWave,'String'));
 stopWavelength = str2num(get(handles.stopWave,'String'));
 resol = str2num(get(handles.resolution,'String'));
-
+% set(handles.wavelengthVal,'String',stopWavelength);
 contents2 = cellstr(get(handles.sweepSpeed,'String'));
 choice2 = contents2{get(handles.sweepSpeed,'Value')};
 sweepSpeed = str2num(choice2);
 sweepData = YenistaTunicsCT400(power, startWavelength, stopWavelength, resol, [1 2 3 4], sweepSpeed, input, 'test', 'test');
+
 save('sweepingData.mat','sweepData');
 axes(handles.axes1);
-
 hold on;
 % plot(data(:,1),data(:,3));
 xlabel('Wavelength (nm)');
@@ -337,6 +339,7 @@ end
 if(val4==1)
     plot(sweepData(:,1),sweepData(:,5));
 end
+
 
 
 
@@ -695,10 +698,11 @@ function fineAllign_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 load('parFineAlign.mat');
 set(handles.wavelengthVal,'String',param_align.wavelength);
-doFineAllignment(param_align,handles)
+doFineAllignment(handles)
 guidata(hObject,handles)
 
-function doFineAllignment(param_align,handles)
+function doFineAllignment(handles)
+load('parFineAlign.mat');
 N = ceil(param_align.window/param_align.step);
 powerMatrix = zeros(N,N);
 
@@ -779,67 +783,20 @@ else det_main = str2num(param_align.det_main);
 end
 [IL_max_dets,i_max_row]=max(powerMatrix(:,det_main+4));
 [IL_max,i_max_det]=max(IL_max_dets);
+% figure; scatter3(powerMatrix(:,1),powerMatrix(:,2),powerMatrix(:,5));
 
-% powerDetector1 = param_align.detector1 + 4;
-% powerDetector2 = param_align.detector2 + 4;
-% [M1,I1]=max(powerMatrix(:,powerDetector1))
-% [M2,I2]=max(powerMatrix(:,powerDetector2))
-
-% %--------------prev threshold calc technique-----------------
-% if(max(powerMatrix(:,powerDetector1))<threshold)
-%     warndlg({'For this threshold its not possible to allign to Detector 1'},'Detecting very Low power detected');
-% else
-%     
-%     req_row = powerMatrix(I1,:);
-%     max_x_pos = req_row(1);
-%     max_y_pos = req_row(2);
-%     [row column] = size(powerMatrix);
-%     current_x_pos = powerMatrix(row,1);
-%     current_y_pos = powerMatrix(row,2);
-%     [curr_x, curr_y, ~] = handles.stage.getPosition()
-%     %return the stage to the origin position
-%     handles.stage.move_x(-current_x_pos);
-%     handles.stage.move_y(-current_y_pos);
-%     [init_x, init_y, ~] = handles.stage.getPosition()
-%     %now move the stage to the optimized position
-%     handles.stage.move_x(max_x_pos);
-%     handles.stage.move_y(max_y_pos);
-%     [optim_x, optim_y, ~] = handles.stage.getPosition()
-% end
-% %-----------------------------------------------------------------------------------
 %new threshold calc technique
 if IL_max>param_align.threshold   
-    max_x_pos = powerMatrix(i_max,1);
-    max_y_pos = powerMatrix(i_max,2);
+    max_x_pos = powerMatrix(i_max_row(i_max_det),1);
+    max_y_pos = powerMatrix(i_max_row(i_max_det),2);
     current_x_pos = powerMatrix(end,1);
     current_y_pos = powerMatrix(end,2);
-%     [curr_x, curr_y, ~] = handles.stage.getPosition();
     %return the stage to the origin position
     handles.stage.move_x(-current_x_pos+max_x_pos);
     handles.stage.move_y(-current_y_pos+max_y_pos);
-%     [init_x, init_y, ~] = handles.stage.getPosition();
-    %now move the stage to the optimized position
-%     handles.stage.move_x();
-%     handles.stage.move_y();
-%     [optim_x, optim_y, ~] = handles.stage.getPosition()
-% elseif (max(powerMatrix(:,powerDetector2))>param_align.threshold)
-%     req_row = powerMatrix(I2,:);
-%     max_x_pos = req_row(1);
-%     max_y_pos = req_row(2);
-%     [row column] = size(powerMatrix);
-%     current_x_pos = powerMatrix(row,1);
-%     current_y_pos = powerMatrix(row,2);
-%     [curr_x, curr_y, ~] = handles.stage.getPosition()
-%     %return the stage to the origin position
-%     handles.stage.move_x(-current_x_pos);
-%     handles.stage.move_y(-current_y_pos);
-%     [init_x, init_y, ~] = handles.stage.getPosition()
-%     %now move the stage to the optimized position
-%     handles.stage.move_x(max_x_pos);
-%     handles.stage.move_y(max_y_pos);
-%     [optim_x, optim_y, ~] = handles.stage.getPosition() 
+
 else
-     warndlg({strcat('For this threshold it''s not possible to align to either of detectors:  ',num2str(param_align.det_main)},'Detecting very Low power detected');
+     warndlg({strcat('For this threshold it''s not possible to align to either of detectors:  ',num2str(param_align.det_main))},'Detecting very Low power detected');
 end
 %-----------------------------------------------------------------------------------
 % guidata(handles)
@@ -1712,105 +1669,41 @@ try
 catch
     warndlg({'Please check motor connections !'},'Motor not connected');
 end
+
 % --- Executes on button press in calculatePositions.
 function calculatePositions_Callback(hObject, eventdata, handles)
-gds1x = str2num(get(handles.gdsDev1x,'String'));
-gds1y = str2num(get(handles.gdsDev1y,'String'));
-
-gds2x = str2num(get(handles.gdsDev2x,'String'));
-gds2y = str2num(get(handles.gdsDev2y,'String'));
-
-gds3x = str2num(get(handles.gdsDev3x,'String'));
-gds3y = str2num(get(handles.gdsDev3y,'String'));
-
-gds4x = str2num(get(handles.gdsDev4x,'String'));
-gds4y = str2num(get(handles.gdsDev4y,'String'));
-
-gds5x = str2num(get(handles.gdsDev5x,'String'));
-gds5y = str2num(get(handles.gdsDev5y,'String'));
-
-arr_x = [gds1x;gds2x;gds3x;gds4x;gds5x];
-arr_y = [gds1y;gds2y;gds3y;gds4y;gds5y];
-
-[row_arr_x column_arr_x] = size(arr_x);
-[row_arr_y column_arr_y] = size(arr_y);
-
-motor1x = str2num(get(handles.motorDev1x,'String'));
-motor1y = str2num(get(handles.motorDev1y,'String'));
-
-motor2x = str2num(get(handles.motorDev2x,'String'));
-motor2y = str2num(get(handles.motorDev2y,'String'));
-
-motor3x = str2num(get(handles.motorDev3x,'String'));
-motor3y = str2num(get(handles.motorDev3y,'String'));
-
-motor4x = str2num(get(handles.motorDev4x,'String'));
-motor4y = str2num(get(handles.motorDev4y,'String'));
-
-motor5x = str2num(get(handles.motorDev5x,'String'));
-motor5y = str2num(get(handles.motorDev5y,'String'));
-
-arr_X = [motor1x;motor2x;motor3x;motor4x;motor5x];
-arr_Y = [motor1y;motor2y;motor3y;motor4y;motor5y];
-
-[row_arr_X column_arr_X] = size(arr_X);
-[row_arr_Y column_arr_Y] = size(arr_Y);
-
-
-gds_allX = [gds1x;gds2x;gds3x;gds4x;gds5x];
-gds_allY = [gds1y;gds2y;gds3y;gds4y;gds5y];
-motor_allX = [motor1x;motor2x;motor3x;motor4x;motor5x];
-motor_allY = [motor1y;motor2y;motor3y;motor4y;motor5y];
-save('gds_allX.mat','gds_allX');
-save('gds_allY.mat','gds_allY');
-save('motor_allX.mat','motor_allX');
-save('motor_allY.mat','motor_allY');
-
-selectedDevicesFrmChip = cellstr(get(handles.selectedDevices,'String'));
-[row column] = size(handles.matrixOfChip);
-allDeviceList = handles.matrixOfChip(2:row,6);
-[r c]=size(selectedDevicesFrmChip);
-matrixOfSelectedDevices={};
-for i=1:r
-    curr_selected = selectedDevicesFrmChip(i);
-    [rn,cn]=find(strcmp(allDeviceList,curr_selected));
-    matrixOfSelectedDevices(i,1:column) = handles.matrixOfChip(rn+1,1:column);        
-    all_X(i) = (handles.matrixOfChip(rn+1,1));
-    all_Y(i) = (handles.matrixOfChip(rn+1,2));
-    save_NameFiles(i) = (handles.matrixOfChip(rn+1,6));
-end
-[r c]=size(matrixOfSelectedDevices)
-matrixOfSelectedDevices
-save_NameFiles
-all_X= str2num(char(all_X))
-all_Y= str2num(char(all_Y))
-handles.all_save_NameFiles = save_NameFiles;
-if(column_arr_X == 0)
-    warndlg({'Positions not acquired from the motor coordinates';'Please allign it manually or motor might not be connected!'},'Missing Motor Coordinates');
-elseif(column_arr_x == 0)
-    warndlg({'Positions not entered for the gds coordinates';'Please enter it manually  !'},'Missing GDS Coordinates');
-else
-%     disp('here')
-    %the linear interpolation model is built here
-    
-    model_xX = fitlm(arr_x,arr_X);
-    model_yY = fitlm(arr_y,arr_Y);
-    
-    %the created model is fitted to the available coordinates
-%     handles.p_all_X = predict(model_xX,all_X);
-%     handles.p_all_Y = predict(model_yY,all_Y);
-%     c = getMotorCoords([arr_x(1);arr_y(1)])
-%     all_X
-%     all_Y
-    coordinatesToFind = vertcat(all_X',all_Y')
-    for i=1:r
-        a = getMotorCoords(coordinatesToFind(:,i));
-        motorCoordinates(1,i) = a(1);
-        motorCoordinates(2,i) = a(2);
+for i_marker = 1:5
+    if ~isempty(eval(['get(handles.gdsDev',num2str(i_marker),'x,''String'')']))
+        pos_refs.gds(i_marker,1) = eval(['str2num(get(handles.gdsDev',num2str(i_marker),'x,''String''))']);
+        pos_refs.gds(i_marker,2) = eval(['str2num(get(handles.gdsDev',num2str(i_marker),'y,''String''))']);
+        pos_refs.mtr(i_marker,1) = eval(['str2num(get(handles.motorDev',num2str(i_marker),'x,''String''))']);
+        pos_refs.mtr(i_marker,2) = eval(['str2num(get(handles.motorDev',num2str(i_marker),'y,''String''))']);
     end
-    motorCoordinates
-    handles.p_all_X = motorCoordinates(1,:);
-    handles.p_all_Y = motorCoordinates(2,:);
+end
+% Amar please clean up these 4 lines of useless code
+gds_allX = pos_refs.gds(:,1); gds_allY = pos_refs.gds(:,2);
+motor_allX = pos_refs.mtr(:,1); motor_allY = pos_refs.mtr(:,2);
+save('gds_allX.mat','gds_allX'); save('gds_allY.mat','gds_allY');
+save('motor_allX.mat','motor_allX'); save('motor_allY.mat','motor_allY');
+
+if isempty(pos_refs.mtr),     warndlg({'Positions not acquired from the motor coordinates';'Please align it manually or motor might not be connected!'},'Missing Motor Coordinates');
+elseif isempty(pos_refs.gds), warndlg({'Positions not entered for the gds coordinates';'Please enter it manually  !'},'Missing GDS Coordinates');
+else    
+    devs_sel_names = cellstr(get(handles.selectedDevices,'String')); % list of selected devices from chip
+    % matrixOfChip = [X-coord Y-coord Polarization wavelength type deviceID comment];
+    devs_all_names = handles.matrixOfChip(2:end,6); % list of all devices from chip
+    devs_sel={};
+    for i=1:length(devs_sel_names)
+        i_dev=find(strcmp(devs_all_names,devs_sel_names(i)));
+        devs_sel(i,:) = handles.matrixOfChip(i_dev+1,:);        
+        pos_devs.gds(i,:) = [str2num(handles.matrixOfChip{i_dev+1,1}) str2num(handles.matrixOfChip{i_dev+1,2})];
+        save_NameFiles(i) = (handles.matrixOfChip(i_dev+1,6));
+    end
+    handles.all_save_NameFiles = save_NameFiles;
+   
+    pos_devs.mtr = mapMotorCoordinates(pos_refs.gds,pos_refs.mtr,pos_devs.gds);
+    handles.p_all_X = pos_devs.mtr(:,1);
+    handles.p_all_Y = pos_devs.mtr(:,2);
 end
 guidata(hObject,handles)
 
@@ -1819,29 +1712,33 @@ function startAutoMeasurement_Callback(hObject, eventdata, handles)
 % hObject    handle to startAutoMeasurement (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[row column] = size(handles.p_all_X)
-
-for i=1:column
+hfig = figure;
+for i=1:size(handles.p_all_X,2)
+    % Move (slowly, in steps) to the correct position
     [xpos,ypos,~] = handles.stage.getPosition();
     diff_x = handles.p_all_X(i) - xpos;
+    x_discretization = ceil(abs(diff_x)/1000);
+    for i_dx=1:x_discretization
+        handles.stage.move_x(diff_x/x_discretization);
+    end
     diff_y = handles.p_all_Y(i) - ypos;
-    handles.stage.move_x(diff_x);
-    handles.stage.move_y(diff_y);
+    y_discretization = ceil(abs(diff_y)/1000);
+    for i_dy=1:y_discretization
+        handles.stage.move_y(diff_y/y_discretization);
+    end
     doFineAllignment(handles);
+    
+    % Analysis
     performSweep(handles);
     folderPath = handles.savePath.String
     fileName = handles.all_save_NameFiles(i)
     pathToSave = [folderPath,'\',fileName,'.mat']
-    [r c]=size(folderPath)
-    if (c==0)
-        warndlg({ strcat('Please enter a valid path to save the files')},'No file Path');
+    if isempty(folderPath), warndlg({ strcat('Please enter a valid path to save the files')},'No file Path');
     else
         load('sweepingData.mat');
-%     [folderPath,'\',handles.name.String]
-%         whos('pathToSave')
-%         whos('sweepData')
-        a=cell2mat(pathToSave)
-        save(a,'sweepData');
+        str_path=cell2mat(pathToSave);
+        save(str_path,'sweepData');
+        plot(hfig,sweepData
     end
 end
 guidata(hObject,handles)
