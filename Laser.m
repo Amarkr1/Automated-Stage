@@ -1,5 +1,8 @@
 function varargout = Laser(varargin)
-%AMAR [amar.kumar@mail.mcgill.ca]
+% AMAR [amar.kumar@mail.mcgill.ca]
+% Yannick.DMello@mail.McGill.ca
+% Test path: C:\Users\plantgroup\Desktop\ANT_06-12\ANT_2017_06_12_Group_MergedLayout_Yannick.txt
+% Save path: C:\Users\plantgroup\Desktop\Yannick\Measurements\meas_20170912
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
@@ -76,19 +79,23 @@ function offLaser_Callback(hObject, eventdata, handles)
 % hObject    handle to offLaser (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-pierror = libpointer('int32Ptr', zeros(1,1));
-uiHandle = calllib('CT400_lib', 'CT400_Init', pierror);
-offLaser;
-calllib('CT400_lib', 'CT400_Close', uiHandle);
 
 
-% --- Executes on button press in onLaser.
-function onLaser_Callback(hObject, eventdata, handles)
-% hObject    handle to onLaser (see GCBO)
+% --- Executes on button press in Laser.
+function Laser_Callback(hObject, eventdata, handles)
+% hObject    handle to Laser (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-pierror = libpointer('int32Ptr', zeros(1,1));
-uiHandle = calllib('CT400_lib', 'CT400_Init', pierror);
+if get(handles.Laser,'Value'), 
+    set(handles.Laser,'String','OFF');
+    pierror = libpointer('int32Ptr', zeros(1,1));
+    uiHandle = calllib('CT400_lib', 'CT400_Init', pierror);
+else set(handles.Laser,'String','ON');
+    pierror = libpointer('int32Ptr', zeros(1,1));
+    uiHandle = calllib('CT400_lib', 'CT400_Init', pierror);
+    offLaser;
+    calllib('CT400_lib', 'CT400_Close', uiHandle);
+end
 
 
 
@@ -487,6 +494,10 @@ function powerMeter_Callback(hObject, eventdata, handles)
 % hObject    handle to powerMeter (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+if get(handles.powerMeter,'Value'), set(handles.powerMeter,'String','OFF')
+else set(handles.powerMeter,'String','ON')
+end
+
 pierror = libpointer('int32Ptr', zeros(1,1));
 uiHandle = calllib('CT400_lib', 'CT400_Init', pierror);
 pPout = libpointer('doublePtr', zeros(1, 1));
@@ -496,22 +507,15 @@ pP3 = libpointer('doublePtr', zeros(1, 1));
 pP4 = libpointer('doublePtr', zeros(1, 1));
 pVext = libpointer('doublePtr', zeros(1, 1));
 
-while(1)
+while get(handles.powerMeter,'Value')
     calllib('CT400_lib', 'CT400_ReadPowerDetectors', uiHandle, pPout, pP1, pP2, pP3, pP4, pVext);
     set(handles.d1,'String',num2str(pP1.Value));
     set(handles.d2,'String',num2str(pP2.Value));
     set(handles.d3,'String',num2str(pP3.Value));
     set(handles.d4,'String',num2str(pP4.Value));
     set(handles.outputPower,'String',num2str(pPout.Value));
-    val = get(handles.pauseMeasuring,'Value');
-    if(val==1)
-        break;
-    end
-%     fprintf('Pout: %2.2f, P1: %2.2f, P2: %2.2f, P3: %2.2f, P4: %2.2f\n', pPout.Value, pP1.Value, pP2.Value, pP3.Value, pP4.Value);
     pause(0.1)
 end
-
-
 
 % --- Executes on button press in pauseMeasuring.
 function pauseMeasuring_Callback(hObject, eventdata, handles)
@@ -611,97 +615,108 @@ if(handles.stage.Connected==1)
 end
 guidata(hObject,handles)
 
-function address_Callback(hObject, eventdata, handles)
-% hObject    handle to address (see GCBO)
+% --- Executes on button press in StageCorvus.
+function StageCorvus_Callback(hObject, eventdata, handles)
+% hObject    handle to StageCorvus (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of address as text
-%        str2double(get(hObject,'String')) returns contents of address as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function address_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to address (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function axes_Callback(hObject, eventdata, handles)
-% hObject    handle to axes (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of axes as text
-%        str2double(get(hObject,'String')) returns contents of axes as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function axes_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to axes (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes on button press in connectCorvus.
-function connectCorvus_Callback(hObject, eventdata, handles)
-% hObject    handle to connectCorvus (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-handles.stage = CorvusEco;
-handles.stage.Param.COMPort = str2num(get(handles.address,'String'));
-handles.stage.connect();
-if(handles.stage.Connected == 1)
-   set(handles.statusCorvus,'backgroundcolor','g'); % g is reserved for green color
-end
-guidata(hObject,handles)
-
-
-
-
-% --- Executes on button press in disconnectCorvus.
-function disconnectCorvus_Callback(hObject, eventdata, handles)
-% hObject    handle to disconnectCorvus (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-if(handles.stage.Connected == 1)
+if get(handles.StageCorvus,'Value'), 
+    set(handles.StageCorvus,'String','OFF');
+    handles.stage = CorvusEco;
+    handles.stage.Param.COMPort = str2num(get(handles.address,'String'));
+    handles.stage.connect();
+    guidata(hObject,handles)
+else
+    set(handles.StageCorvus,'String','ON');
     handles.stage.disconnect();
-    set(handles.statusCorvus,'backgroundcolor','r'); % g is reserved for green color
 end
 
-
-
-% --- Executes on button press in statusCorvus.
-function statusCorvus_Callback(hObject, eventdata, handles)
-% hObject    handle to statusCorvus (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on button press in fineAllign.
-function fineAllign_Callback(hObject, eventdata, handles)
-% hObject    handle to fineAllign (see GCBO)
+% --- Executes on button press in fineAlign.
+function fineAlign_Callback(hObject, eventdata, handles)
+% hObject    handle to fineAlign (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 load('parFineAlign.mat');
 set(handles.wavelengthVal,'String',param_align.wavelength);
-doFineAllignment(handles)
+optimize_alignment(handles);
+% Align(handles) % Amar replace this with the actual code, no need for separate function if we can call the callback anyways
 guidata(hObject,handles)
 
-function doFineAllignment(handles)
+function optimize_alignment(handles)
+warning('off','all');
+uiHandle = calllib('CT400_lib', 'CT400_Init', libpointer('int32Ptr', zeros(1,1)));
+det.pPout = libpointer('doublePtr', zeros(1, 1));
+det.pP1 = libpointer('doublePtr', zeros(1, 1));
+det.pP2 = libpointer('doublePtr', zeros(1, 1));
+det.pP3 = libpointer('doublePtr', zeros(1, 1));
+det.pP4 = libpointer('doublePtr', zeros(1, 1));
+det.pVext = libpointer('doublePtr', zeros(1, 1));
+load('parFineAlign.mat');
+
+IL_opt = measure_det_FA(handles,uiHandle,param_align,det); 
+[ori_x, ori_y, ~] = handles.stage.getPosition();
+N = ceil(param_align.window/param_align.step+1);
+step = param_align.window/N;
+
+dim_now = 'x'; inc = 0; IL_opt_old = -70;
+while inc<3 || ( (IL_opt-IL_opt_old)>.2 && inc<10 ) % either less than 3 iterations, or [ less than 10 and inconsistent values]
+    IL_opt_old = IL_opt;   
+    
+    % Initialize
+    [x_now, y_now, ~] = handles.stage.getPosition(); inc = inc+1;
+    if dim_now == 'x', 
+        dim_now = 'y'; pos0 = ori_y; pos_now = y_now;
+    else dim_now = 'x'; pos0 = ori_x; pos_now = x_now;
+    end
+    poss = linspace(pos0-param_align.window/2,pos0+param_align.window/2,N);
+    eval(['handles.stage.move_',dim_now,'(',num2str( pos0-param_align.window/2-pos_now-2 ),');']); % move to start of window in this dimension
+    % Sweep
+    for i_pos = 1:N
+        eval(['handles.stage.move_',dim_now,'(',num2str(step),');']);
+        ILs(i_pos) = measure_det_FA(handles,uiHandle,param_align,det);
+    end
+    p = polyfit(poss,ILs,2); % figure; plot(poss,[ILs;polyval(p,poss)]);
+    pos_opt = fminbnd(@(pos) -polyval(p,pos),pos0-param_align.window/2,pos0+param_align.window/2,optimset('Display','off'));
+    eval(['handles.stage.move_',dim_now,'(',num2str(pos_opt-(pos0+param_align.window/2)),');']);
+    IL_opt = max([IL_opt_old,measure_det_FA(handles,uiHandle,param_align,det)]);
+end
+
+% % two 1D interpolations don't seem to work
+% [init_x, init_y, ~] = handles.stage.getPosition();
+% % y_opt goes first because it's easier to optimize in y (wider gaussian)
+% y_opt = fminbnd(@(y) objf_alignment(handles,uiHandle,param_align,det,y,'y'),init_y-param_align.window/2,init_y+param_align.window/2,optimset('MaxFunEvals',10,'TolX',.2));
+% [init_x, init_y, ~] = handles.stage.getPosition(); handles.stage.move_y(y_opt-init_y);
+% % set y, optimize x
+% x_opt = fminbnd(@(x) objf_alignment(handles,uiHandle,param_align,det,x,'x'),init_x-param_align.window/2,init_x+param_align.window/2,optimset('MaxFunEvals',25,'TolX',.2));
+% [init_x, init_y, ~] = handles.stage.getPosition(); handles.stage.move_x(x_opt-init_x);
+% % verify y if necessary
+% y_opt = fminbnd(@(y) objf_alignment(handles,uiHandle,param_align,det,y,'y'),init_y-param_align.window/2,init_y+param_align.window/2,optimset('MaxFunEvals',25,'TolX',.2));
+% [init_x, init_y, ~] = handles.stage.getPosition(); handles.stage.move_y(y_opt-init_y);
+
+warning('on','all');
+
+function IL_max = measure_det_FA(handles,uiHandle,param_align,det) % measurement for fine alignment
+calllib('CT400_lib', 'CT400_ReadPowerDetectors', uiHandle, det.pPout, det.pP1, det.pP2, det.pP3, det.pP4, det.pVext);
+ILs = [det.pP1.Value, det.pP2.Value, det.pP3.Value, det.pP4.Value];
+if strcmp(param_align.det_main,'All'), det_main = 1:4;
+else det_main = str2num(param_align.det_main);
+end
+IL_max=max(ILs(det_main));
+
+function IL_max = objf_alignment(handles,uiHandle,param_align,det,pos,dirn) % objective function for alignment optimization
+[init_x, init_y, ~] = handles.stage.getPosition();
+if strcmp(dirn,'x'),        handles.stage.move_x(pos-init_x);
+elseif strcmp(dirn,'y'),    handles.stage.move_y(pos-init_y);
+end
+calllib('CT400_lib', 'CT400_ReadPowerDetectors', uiHandle, det.pPout, det.pP1, det.pP2, det.pP3, det.pP4, det.pVext);
+ILs = [det.pP1.Value, det.pP2.Value, det.pP3.Value, det.pP4.Value];
+if strcmp(param_align.det_main,'All'), det_main = 1:4;
+else det_main = str2num(param_align.det_main);
+end
+IL_max=max(ILs(det_main));
+
+
+function Align(handles) % Amar clean this up and implement 2D Gaussian interpolation
 load('parFineAlign.mat');
 N = ceil(param_align.window/param_align.step);
 powerMatrix = zeros(N,N);
@@ -716,8 +731,7 @@ inputPort = str2num(choice); %input port for the laser
 if(param_align.wavelength<=1400)
     calllib('CT400_lib', 'CT400_SetLaser', uiHandle, inputPort, 'ENABLE', 10, 'LS_TunicsT100s_HP', 1260, 1360, 10);
     calllib('CT400_lib', 'CT400_CmdLaser', uiHandle, inputPort, 'ENABLE', param_align.wavelength,param_align.power);
-else
-    
+else    
     calllib('CT400_lib', 'CT400_SetLaser', uiHandle, inputPort, 'ENABLE', 01, 'LS_TunicsT100s_HP', 1550, 1630, 10);
     calllib('CT400_lib', 'CT400_CmdLaser', uiHandle, inputPort, 'ENABLE', param_align.wavelength,param_align.power);
 end
@@ -794,12 +808,12 @@ if IL_max>param_align.threshold
     %return the stage to the origin position
     handles.stage.move_x(-current_x_pos+max_x_pos);
     handles.stage.move_y(-current_y_pos+max_y_pos);
-
 else
      warndlg({strcat('For this threshold it''s not possible to align to either of detectors:  ',num2str(param_align.det_main))},'Detecting very Low power detected');
 end
 %-----------------------------------------------------------------------------------
 % guidata(handles)
+
 
 % --- Executes on selection change in popupmenu4.
 function popupmenu4_Callback(hObject, eventdata, handles)
@@ -854,17 +868,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function pathGds_Callback(hObject, eventdata, handles)
-% hObject    handle to pathGds (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of pathGds as text
-%        str2double(get(hObject,'String')) returns contents of pathGds as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function pathGds_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to pathGds (see GCBO)
@@ -877,28 +880,80 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on button press in opengds.
 function opengds_Callback(hObject, eventdata, handles)
 % hObject    handle to opengds (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 [filename pathname] = uigetfile({'*.txt'},'Choose file');
-fullpathname = strcat(pathname, filename);
-handles.pathname=fullpathname;
-set(handles.pathGds,'String',fullpathname);
+set(handles.pathGds,'String',strcat(pathname, filename));
 guidata(hObject,handles)
 
+% --- Executes on button press in loadDevices.
+function loadDevices_Callback(hObject, eventdata, handles)
+% hObject    handle to loadDevices (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+try
+    if isempty(get(handles.pathGds,'String')), 
+        [filename pathname] = uigetfile({'*.txt'},'Choose file');
+        set(handles.pathGds,'String',strcat(pathname, filename));
+    end
+    if isempty(get(handles.pathGds,'String')), return; end
+    fileID = fopen(get(handles.pathGds,'String'));
+    devices = textscan(fileID,'%s %s %s %s %s %s %s','Delimiter',',');
+    handles.matrixOfChip = [devices{1},devices{2},devices{3},devices{4},devices{5},devices{6},devices{7}];
+    handles.n_devs = length(handles.matrixOfChip)-1;
+    handles.devs_all_names = {};
+    for i_dev = 2:handles.n_devs+1
+        handles.devs_all_names{i_dev-1} = [strjoin(handles.matrixOfChip(i_dev,[6,3,4]),', ')];
+    end
+    fclose(fileID);
+    set(handles.list_devs_usel,'String',handles.devs_all_names);    
+    set(handles.list_devs_moveto,'String',handles.devs_all_names); % filling all the individual device names in the dropdown list box
+    set(handles.disp_devs_usel,'String',handles.n_devs);
+    set(handles.disp_devs_sel,'String',0);
+    set(handles.deviceSearchText,'String',[]);
+    set(handles.list_devs_sel,'String',[]);
+    guidata(hObject,handles)
+catch ex
+   warndlg(ex.message,'Device File Missing');
+end
+
+% --- Executes on button press in searchDevices.
+function searchDevices_Callback(hObject, eventdata, handles)  % load from C:\Users\plantgroup\Desktop\ANT_06-12\ANT_2017_06_12_Group_MergedLayout.txt
+% Example: 'Align & 1310 & TE, Yannick & 1310 & TE' 
+% Whitespaces are not considered
+filt_sections = strsplit(strrep(get(handles.deviceSearchText,'String'),' ',''),','); 
+unselectAll_Callback(hObject, eventdata, handles);
+
+inds_match = [];
+for i_sec = 1:length(filt_sections)
+    filt_terms = strsplit(filt_sections{i_sec},'&'); 
+    for i_term = 1:length(filt_terms)
+        if i_term == 1 
+            n_terms = find(~cellfun('isempty', strfind(handles.devs_all_names,filt_terms{i_term}) )); % devices matching the search term
+        else % only keep indices that already exist
+            n_terms = intersect(n_terms, find(~cellfun('isempty', strfind(handles.devs_all_names,filt_terms{i_term}) ))); % devices matching the search term
+        end
+    end
+    inds_match = union(inds_match,n_terms);
+end
+inds_umatch = setdiff(1:handles.n_devs,inds_match); % leftovers
+
+set(handles.list_devs_sel,'String',handles.devs_all_names(inds_match));
+set(handles.disp_devs_sel,'String',length(inds_match));
+set(handles.list_devs_usel,'String',handles.devs_all_names(inds_umatch));
+set(handles.disp_devs_usel,'String',length(inds_umatch));
+guidata(hObject,handles)
 
 % --- Executes on button press in unselectAll.
 function unselectAll_Callback(hObject, eventdata, handles)
 try
-    set(handles.selectedDevices,'String',[]); %empty the entire selected devices
-    set(handles.allDevices,'String',handles.devicesOnChip_Copy); %fill the all device list
-    handles.devicesOnChip = handles.devicesOnChip_Copy;
-    handles.noOfSelectedDevices = 0;
-    handles.allSelectedDevices = [];
-    set(handles.dispSelectedDevices,'String',handles.noOfSelectedDevices);
+    set(handles.list_devs_sel,'String',[]);
+    set(handles.disp_devs_sel,'String',0);
+    set(handles.list_devs_usel,'String',handles.devs_all_names);
+    set(handles.disp_devs_usel,'String',handles.n_devs);
     guidata(hObject,handles)
 catch
     warndlg({'Unable to unselect devices';'Probably none of the devices are selected'},'Devices Not Available');
@@ -907,60 +962,83 @@ end
 % --- Executes on button press in selectAll.
 function selectAll_Callback(hObject, eventdata, handles)
 try
-    set(handles.allDevices,'String',[]);
-    set(handles.selectedDevices,'String',handles.devicesOnChip_Copy);
-    [row column] = size(handles.matrixOfChip(:,6));
-    handles.noOfSelectedDevices = row-1;
-    set(handles.dispSelectedDevices,'String',handles.noOfSelectedDevices);
+    set(handles.list_devs_sel,'String',handles.devs_all_names);
+    set(handles.disp_devs_sel,'String',handles.n_devs);
+    set(handles.list_devs_usel,'String',[]);
+    set(handles.disp_devs_usel,'String',0);
     guidata(hObject,handles)
 catch
     warndlg({'Unable to select devices';'Probably missing coordinate file'},'Devices Not Available');
 end
-% --- Executes on selection change in allDevices.
-function allDevices_Callback(hObject, eventdata, handles)
 
-contents = cellstr(get(hObject,'String'));
-curr_selected = contents{get(hObject,'Value')};
-if(handles.noOfSelectedDevices==0)
-    handles.allSelectedDevices = {curr_selected};
-else
-    handles.allSelectedDevices = [curr_selected;handles.allSelectedDevices];
+% --- Executes on button press in selectTE_O.
+function selectTE_O_Callback(hObject, eventdata, handles)
+filt_str = get(handles.deviceSearchText,'String');
+if isempty(filt_str), set(handles.deviceSearchText,'String','TE&1310');
+else set(handles.deviceSearchText,'String',[filt_str,',TE&1310']);
 end
-set(handles.selectedDevices,'String',handles.allSelectedDevices);
-handles.availableDevicesForSelection = contents;
-[rn,cn]=find(strcmp(handles.availableDevicesForSelection,curr_selected)); %get the index of that device from the entire chip list
-handles.noOfSelectedDevices = handles.noOfSelectedDevices+1;
-[r1 c1] = size(contents);
-if(rn==r1)
-    handles.availableDevicesForSelection(rn)=[]; % make that specific index to null and then update the list present
-else
-    handles.availableDevicesForSelection(rn)=[]; % make that specific index to null and then update the list present
-end
+searchDevices_Callback(hObject, eventdata, handles)
 
-set(handles.allDevices,'String',handles.availableDevicesForSelection);
-set(handles.dispSelectedDevices,'String',handles.noOfSelectedDevices);
+% --- Executes on button press in selectTM_O.
+function selectTM_O_Callback(hObject, eventdata, handles)
+filt_str = get(handles.deviceSearchText,'String');
+if isempty(filt_str), set(handles.deviceSearchText,'String','TM&1310');
+else set(handles.deviceSearchText,'String',[filt_str,',TM&1310']);
+end
+searchDevices_Callback(hObject, eventdata, handles)
+
+% --- Executes on button press in selectTE_C.
+function selectTE_C_Callback(hObject, eventdata, handles)
+filt_str = get(handles.deviceSearchText,'String');
+if isempty(filt_str), set(handles.deviceSearchText,'String','TE&1550');
+else set(handles.deviceSearchText,'String',[filt_str,',TE&1550']);
+end
+searchDevices_Callback(hObject, eventdata, handles)
+
+% --- Executes on button press in selectTM_C.
+function selectTM_C_Callback(hObject, eventdata, handles)
+filt_str = get(handles.deviceSearchText,'String');
+if isempty(filt_str), set(handles.deviceSearchText,'String','TM&1550');
+else set(handles.deviceSearchText,'String',[filt_str,',TM&1550']);
+end
+searchDevices_Callback(hObject, eventdata, handles)
+
+
+% --- Executes on selection change in list_devs_sel.
+function list_devs_sel_Callback(hObject, eventdata, handles)
+devs_sel_names = get(hObject,'String');
+i_dev_now = get(hObject,'Value');
+i_devs_sel = setdiff(1:length(devs_sel_names),i_dev_now);
+devs_usel_names = get(handles.list_devs_usel,'String');
+
+set(handles.list_devs_sel,'String',devs_sel_names(i_devs_sel));
+set(handles.disp_devs_sel,'String',str2double(get(handles.disp_devs_sel,'String'))-1);
+set(handles.list_devs_sel,'Value',1);
+if isempty(devs_sel_names), set(handles.list_devs_usel,'String',devs_sel_names(i_dev_now));
+else set(handles.list_devs_usel,'String',{devs_usel_names{:},devs_sel_names{i_dev_now}});
+end
+set(handles.disp_devs_usel,'String',str2double(get(handles.disp_devs_usel,'String'))+1);
 guidata(hObject,handles)
 
+% --- Executes on selection change in list_devs_usel.
+function list_devs_usel_Callback(hObject, eventdata, handles)
+devs_usel_names = get(hObject,'String');
+i_dev_now = get(hObject,'Value');
+i_devs_usel = setdiff(1:length(devs_usel_names),i_dev_now);
+devs_sel_names = get(handles.list_devs_sel,'String');
 
-% --- Executes on selection change in selectedDevices.
-function selectedDevices_Callback(hObject, eventdata, handles)
-contents = cellstr(get(hObject,'String'));
-curr_selected = contents{get(hObject,'Value')};
-currentSelectedDevices = contents;
-[rn,cn]=find(strcmp(currentSelectedDevices,curr_selected)); %get the index of that device from the entire chip list
-handles.availableDevicesForSelection = [curr_selected;handles.availableDevicesForSelection];
-currentSelectedDevices(rn)=[]; % make that specific index to null and then update the list present
-handles.noOfSelectedDevices = handles.noOfSelectedDevices-1; %as devices are getting removed 1 is subtracted
-set(handles.dispSelectedDevices,'String',handles.noOfSelectedDevices);
-set(handles.allDevices,'String',handles.availableDevicesForSelection);
-set(handles.selectedDevices,'String',currentSelectedDevices);
+set(handles.list_devs_usel,'String',devs_usel_names(i_devs_usel));
+set(handles.disp_devs_usel,'String',str2double(get(handles.disp_devs_usel,'String'))-1);
+set(handles.list_devs_usel,'Value',1);
+if isempty(devs_sel_names), set(handles.list_devs_sel,'String',devs_usel_names(i_dev_now));
+else set(handles.list_devs_sel,'String',{devs_sel_names{:},devs_usel_names{i_dev_now}});
+end
+set(handles.disp_devs_sel,'String',str2double(get(handles.disp_devs_sel,'String'))+1);
 guidata(hObject,handles)
-
-
 
 % --- Executes during object creation, after setting all properties.
-function allDevices_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to allDevices (see GCBO)
+function list_devs_usel_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to list_devs_usel (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -969,17 +1047,6 @@ function allDevices_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function edit21_Callback(hObject, eventdata, handles)
-% hObject    handle to edit21 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit21 as text
-%        str2double(get(hObject,'String')) returns contents of edit21 as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function edit21_CreateFcn(hObject, eventdata, handles)
@@ -993,17 +1060,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function motorDev1x_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev1x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev1x as text
-%        str2double(get(hObject,'String')) returns contents of motorDev1x as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function motorDev1x_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to motorDev1x (see GCBO)
@@ -1015,17 +1071,6 @@ function motorDev1x_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function edit24_Callback(hObject, eventdata, handles)
-% hObject    handle to edit24 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit24 as text
-%        str2double(get(hObject,'String')) returns contents of edit24 as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function edit24_CreateFcn(hObject, eventdata, handles)
@@ -1039,108 +1084,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function edit25_Callback(hObject, eventdata, handles)
-% hObject    handle to edit25 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit25 as text
-%        str2double(get(hObject,'String')) returns contents of edit25 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit25_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit25 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function edit26_Callback(hObject, eventdata, handles)
-% hObject    handle to edit26 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit26 as text
-%        str2double(get(hObject,'String')) returns contents of edit26 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit26_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit26 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit33_Callback(hObject, eventdata, handles)
-% hObject    handle to edit33 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit33 as text
-%        str2double(get(hObject,'String')) returns contents of edit33 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit33_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit33 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit34_Callback(hObject, eventdata, handles)
-% hObject    handle to edit34 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit34 as text
-%        str2double(get(hObject,'String')) returns contents of edit34 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit34_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit34 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function edit35_Callback(hObject, eventdata, handles)
-% hObject    handle to edit35 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit35 as text
-%        str2double(get(hObject,'String')) returns contents of edit35 as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function edit35_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to edit35 (see GCBO)
@@ -1152,17 +1095,6 @@ function edit35_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function edit36_Callback(hObject, eventdata, handles)
-% hObject    handle to edit36 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit36 as text
-%        str2double(get(hObject,'String')) returns contents of edit36 as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function edit36_CreateFcn(hObject, eventdata, handles)
@@ -1176,17 +1108,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function motorDev2x_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev2x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev2x as text
-%        str2double(get(hObject,'String')) returns contents of motorDev2x as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function motorDev2x_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to motorDev2x (see GCBO)
@@ -1198,17 +1119,6 @@ function motorDev2x_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function motorDev3x_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev3x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev3x as text
-%        str2double(get(hObject,'String')) returns contents of motorDev3x as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function motorDev3x_CreateFcn(hObject, eventdata, handles)
@@ -1222,17 +1132,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function motorDev4x_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev4x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev4x as text
-%        str2double(get(hObject,'String')) returns contents of motorDev4x as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function motorDev4x_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to motorDev4x (see GCBO)
@@ -1244,17 +1143,6 @@ function motorDev4x_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function motorDev5x_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev5x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev5x as text
-%        str2double(get(hObject,'String')) returns contents of motorDev5x as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function motorDev5x_CreateFcn(hObject, eventdata, handles)
@@ -1268,17 +1156,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function motorDev1y_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev1y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev1y as text
-%        str2double(get(hObject,'String')) returns contents of motorDev1y as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function motorDev1y_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to motorDev1y (see GCBO)
@@ -1290,17 +1167,6 @@ function motorDev1y_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function motorDev2y_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev2y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev2y as text
-%        str2double(get(hObject,'String')) returns contents of motorDev2y as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function motorDev2y_CreateFcn(hObject, eventdata, handles)
@@ -1314,17 +1180,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function motorDev3y_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev3y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev3y as text
-%        str2double(get(hObject,'String')) returns contents of motorDev3y as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function motorDev3y_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to motorDev3y (see GCBO)
@@ -1336,17 +1191,6 @@ function motorDev3y_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function motorDev4y_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev4y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev4y as text
-%        str2double(get(hObject,'String')) returns contents of motorDev4y as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function motorDev4y_CreateFcn(hObject, eventdata, handles)
@@ -1360,17 +1204,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function motorDev5y_Callback(hObject, eventdata, handles)
-% hObject    handle to motorDev5y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of motorDev5y as text
-%        str2double(get(hObject,'String')) returns contents of motorDev5y as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function motorDev5y_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to motorDev5y (see GCBO)
@@ -1382,17 +1215,6 @@ function motorDev5y_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function gdsDev1x_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev1x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev1x as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev1x as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function gdsDev1x_CreateFcn(hObject, eventdata, handles)
@@ -1406,17 +1228,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function gdsDev2x_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev2x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev2x as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev2x as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function gdsDev2x_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to gdsDev2x (see GCBO)
@@ -1428,17 +1239,6 @@ function gdsDev2x_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function gdsDev3x_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev3x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev3x as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev3x as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function gdsDev3x_CreateFcn(hObject, eventdata, handles)
@@ -1452,17 +1252,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function gdsDev4x_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev4x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev4x as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev4x as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function gdsDev4x_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to gdsDev4x (see GCBO)
@@ -1474,17 +1263,6 @@ function gdsDev4x_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function gdsDev5x_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev5x (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev5x as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev5x as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function gdsDev5x_CreateFcn(hObject, eventdata, handles)
@@ -1498,17 +1276,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function gdsDev1y_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev1y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev1y as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev1y as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function gdsDev1y_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to gdsDev1y (see GCBO)
@@ -1520,17 +1287,6 @@ function gdsDev1y_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function gdsDev2y_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev2y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev2y as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev2y as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function gdsDev2y_CreateFcn(hObject, eventdata, handles)
@@ -1544,17 +1300,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function gdsDev3y_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev3y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev3y as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev3y as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function gdsDev3y_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to gdsDev3y (see GCBO)
@@ -1567,17 +1312,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function gdsDev4y_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev4y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev4y as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev4y as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function gdsDev4y_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to gdsDev4y (see GCBO)
@@ -1589,17 +1323,6 @@ function gdsDev4y_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-
-function gdsDev5y_Callback(hObject, eventdata, handles)
-% hObject    handle to gdsDev5y (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of gdsDev5y as text
-%        str2double(get(hObject,'String')) returns contents of gdsDev5y as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function gdsDev5y_CreateFcn(hObject, eventdata, handles)
@@ -1680,7 +1403,7 @@ for i_marker = 1:5
         pos_refs.mtr(i_marker,2) = eval(['str2num(get(handles.motorDev',num2str(i_marker),'y,''String''))']);
     end
 end
-% Amar please clean up these 4 lines of useless code
+% Amar please clean up these 4 lines
 gds_allX = pos_refs.gds(:,1); gds_allY = pos_refs.gds(:,2);
 motor_allX = pos_refs.mtr(:,1); motor_allY = pos_refs.mtr(:,2);
 save('gds_allX.mat','gds_allX'); save('gds_allY.mat','gds_allY');
@@ -1689,14 +1412,17 @@ save('motor_allX.mat','motor_allX'); save('motor_allY.mat','motor_allY');
 if isempty(pos_refs.mtr),     warndlg({'Positions not acquired from the motor coordinates';'Please align it manually or motor might not be connected!'},'Missing Motor Coordinates');
 elseif isempty(pos_refs.gds), warndlg({'Positions not entered for the gds coordinates';'Please enter it manually  !'},'Missing GDS Coordinates');
 else    
-    devs_sel_names = cellstr(get(handles.selectedDevices,'String')); % list of selected devices from chip
+    devs_sel_names = get(handles.list_devs_sel,'String'); % list of selected devices from chip
     % matrixOfChip = [X-coord Y-coord Polarization wavelength type deviceID comment];
+    
     devs_all_names = handles.matrixOfChip(2:end,6); % list of all devices from chip
     devs_sel={};
     for i=1:length(devs_sel_names)
-        i_dev=find(strcmp(devs_all_names,devs_sel_names(i)));
+        dev_now = strsplit(strrep(devs_sel_names{i},' ',''),',');
+        dev_id_now = dev_now(1);
+        i_dev = find(~cellfun('isempty', strfind(handles.devs_all_names,dev_id_now)));
         devs_sel(i,:) = handles.matrixOfChip(i_dev+1,:);        
-        pos_devs.gds(i,:) = [str2num(handles.matrixOfChip{i_dev+1,1}) str2num(handles.matrixOfChip{i_dev+1,2})];
+        pos_devs.gds(i,:) = [str2num(devs_sel{i,1}) str2num(devs_sel{i,2})];
         save_NameFiles(i) = (handles.matrixOfChip(i_dev+1,6));
     end
     handles.all_save_NameFiles = save_NameFiles;
@@ -1713,35 +1439,34 @@ function startAutoMeasurement_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 hfig = figure; hax = axes('Parent',hfig);
-for i=1:size(handles.p_all_X,2)
-    % Move (slowly, in steps) to the correct position
+hw = waitbar(0,'Performing automated testing...');
+for i=1:length(handles.p_all_X)
+    waitbar(i/length(handles.p_all_X),hw);
+    
+    % Move to the correct position
     [xpos,ypos,~] = handles.stage.getPosition();
     diff_x = handles.p_all_X(i) - xpos;
-    x_discretization = ceil(abs(diff_x)/1000);
-    for i_dx=1:x_discretization
-        handles.stage.move_x(diff_x/x_discretization);
-    end
+    handles.stage.move_x(diff_x);
     diff_y = handles.p_all_Y(i) - ypos;
-    y_discretization = ceil(abs(diff_y)/1000);
-    for i_dy=1:y_discretization
-        handles.stage.move_y(diff_y/y_discretization);
-    end
-    doFineAllignment(handles);
+    handles.stage.move_y(diff_y);
+    optimize_alignment(handles);
     
     % Analysis
     performSweep(handles);
-    folderPath = handles.savePath.String
-    fileName = handles.all_save_NameFiles(i)
-    pathToSave = [folderPath,'\',fileName,'.mat']
+    folderPath = handles.savePath.String;
+    fileName = handles.all_save_NameFiles(i);
+    pathToSave = [folderPath,'\',fileName,'.mat'];
     if isempty(folderPath), warndlg({ strcat('Please enter a valid path to save the files')},'No file Path');
     else
         load('sweepingData.mat');
         str_path=cell2mat(pathToSave);
         save(str_path,'sweepData');
-        plot(hax,sweepData(:,1),sweepData(:,2:end)); xlabel('Wavelength (nm)'); ylabel('IL (dB)'); axis tight; ylim([-70 0]);
+        plot(hax,sweepData(:,1),sweepData(:,2:end)); axis(hax,'tight'); ylim(hax,[-70 0]);
+        xlabel(hax,'Wavelength (nm)'); ylabel(hax,'IL (dB)'); title(hax,strrep(fileName,'_',' ')); legend(hax,'Port 1','Port 2','Port 3','Port 4');
         saveas(hfig,strrep(str_path,'.mat','.png'),'png');
     end
 end
+close(hfig); close(hw);
 guidata(hObject,handles)
 
 function savePath_Callback(hObject, eventdata, handles)
@@ -1775,18 +1500,18 @@ handles.pathSaveFile=fullpathname;
 set(handles.savePath,'String',handles.pathSaveFile);
 guidata(hObject,handles)
 
-% --- Executes on selection change in individualDeviceList.
-function individualDeviceList_Callback(hObject, eventdata, handles)
-% hObject    handle to individualDeviceList (see GCBO)
+% --- Executes on selection change in list_devs_moveto.
+function list_devs_moveto_Callback(hObject, eventdata, handles)
+% hObject    handle to list_devs_moveto (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns individualDeviceList contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from individualDeviceList
+% Hints: contents = cellstr(get(hObject,'String')) returns list_devs_moveto contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from list_devs_moveto
 
 % --- Executes during object creation, after setting all properties.
-function individualDeviceList_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to individualDeviceList (see GCBO)
+function list_devs_moveto_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to list_devs_moveto (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1796,48 +1521,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-% --- Executes on button press in pushbutton32.
-function pushbutton32_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton32 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% --- Executes on button press in loadDevices.
-function loadDevices_Callback(hObject, eventdata, handles)
-% hObject    handle to loadDevices (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-try
-    fileID = fopen(handles.pathname);
-    devices = textscan(fileID,'%s %s %s %s %s %s %s','Delimiter',',');
-    handles.matrixOfChip = [devices{1},devices{2},devices{3},devices{4},devices{5},devices{6},devices{7}];
-    [row column] = size(handles.matrixOfChip(:,6));
-    handles.noOfSelectedDevices = 0;
-    handles.devicesOnChip = handles.matrixOfChip(2:row,6);
-    handles.devicesOnChip_Copy = handles.matrixOfChip(2:row,6); %this copy is to select all the 
-                                                                %devices when all is pressed
-    fclose(fileID);
-    set(handles.allDevices,'String',handles.devicesOnChip);
-    set(handles.dispTotalDevices,'String',row-1);
-    set(handles.dispSelectedDevices,'String',handles.noOfSelectedDevices);
-    set(handles.deviceSearchText,'String',[]);
-    set(handles.selectedDevices,'String',[]);
-    
-    %filling all the individual device names in the dropdown list box
-    set(handles.individualDeviceList,'String',handles.devicesOnChip);
-    guidata(hObject,handles)
-catch
-    %     warning('off', id)
-    %    warndlg({'Message line 1';'Message line 2'})
-   warndlg({'None of the files was selected'},'Device File Missing');
-end
-
-
-
-
 % --- Executes during object creation, after setting all properties.
-function selectedDevices_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to selectedDevices (see GCBO)
+function list_devs_sel_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to list_devs_sel (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1846,16 +1532,6 @@ function selectedDevices_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-% --- Executes on selection change in selectionFilter.
-function selectionFilter_Callback(hObject, eventdata, handles)
-% hObject    handle to selectionFilter (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns selectionFilter contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from selectionFilter
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1870,58 +1546,11 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function deviceSearchText_Callback(hObject, eventdata, handles)
-% hObject    handle to deviceSearchText (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of deviceSearchText as text
-%        str2double(get(hObject,'String')) returns contents of deviceSearchText as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function deviceSearchText_CreateFcn(hObject, eventdata, handles)
-
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-% --- Executes on button press in searchDevices.
-function searchDevices_Callback(hObject, eventdata, handles)
-
-try
-    searchTerms = strsplit(get(handles.deviceSearchText,'String'),','); 
-    [row column]=size(searchTerms);
-    %initialization
-    handles.allSelectedDevices = {};
-    handles.noOfSelectedDevices = 0;
-    
-    for i=1:column
-        searchTerm = searchTerms{i};
-        resultantArray = strfind(handles.devicesOnChip_Copy,searchTerm);
-        matchingDevicesIndx = find(~cellfun('isempty', resultantArray));%matching devices to the entered search term
-        [row,~] = size(matchingDevicesIndx);
-        if(~(row==0))
-            handles.noOfSelectedDevices = handles.noOfSelectedDevices + row;
-            set(handles.dispSelectedDevices,'String',handles.noOfSelectedDevices);
-            handles.allSelectedDevices = [handles.devicesOnChip_Copy(matchingDevicesIndx);handles.allSelectedDevices];
-            set(handles.selectedDevices,'String',handles.allSelectedDevices);
-            
-        else
-             warndlg({ strcat('Device not found for the search term :  ',searchTerm);'The search term is case sensitive'},'No match found');
-        end
-    end
-    set(handles.allDevices,'String',handles.devicesOnChip_Copy(~ismember(handles.devicesOnChip_Copy,handles.allSelectedDevices)));
-    %the above line searches all the selected devices and removes it from
-    %the list of devices present 
-    
-catch
-     warndlg({'Unable to select devices';'Probably missing coordinate file'},'Devices Not Available');
-end
-guidata(hObject,handles)
 
 
 % --- Executes on button press in resetMotorPositions.
@@ -2182,17 +1811,6 @@ end
 
 guidata(hObject,handles)
 
-
-
-function name_Callback(hObject, eventdata, handles)
-% hObject    handle to name (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of name as text
-%        str2double(get(hObject,'String')) returns contents of name as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function name_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to name (see GCBO)
@@ -2204,24 +1822,6 @@ function name_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
-% --- Executes on button press in clearFigure.
-function clearFigure_Callback(hObject, eventdata, handles)
-% hObject    handle to clearFigure (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-
-function moveMotorX_Callback(hObject, eventdata, handles)
-% hObject    handle to moveMotorX (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of moveMotorX as text
-%        str2double(get(hObject,'String')) returns contents of moveMotorX as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function moveMotorX_CreateFcn(hObject, eventdata, handles)
@@ -2235,8 +1835,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function moveMotorY_Callback(hObject, eventdata, handles)
 % hObject    handle to moveMotorY (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -2244,7 +1842,6 @@ function moveMotorY_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of moveMotorY as text
 %        str2double(get(hObject,'String')) returns contents of moveMotorY as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function moveMotorY_CreateFcn(hObject, eventdata, handles)
@@ -2257,7 +1854,6 @@ function moveMotorY_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 % --- Executes on button press in moveMotorXY.
 function moveMotorXY_Callback(hObject, eventdata, handles)
@@ -2274,3 +1870,46 @@ handles.stage.move_x(diff_x);
 handles.stage.move_y(diff_y);
 [xpos,ypos,~] = handles.stage.getPosition();
 disp(strcat('After moving: x = ',num2str(xpos),' y= ',num2str(ypos)))
+
+% --- Executes during object creation, after setting all properties.
+function address_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to address (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+if get(handles.StageCorvus,'Value'), handles.stage.disconnect(); end
+try
+    if get(handles.Laser,'Value')
+        uiHandle = calllib('CT400_lib', 'CT400_Init', libpointer('int32Ptr', zeros(1,1)));
+        offLaser;
+        calllib('CT400_lib', 'CT400_Close', uiHandle);
+    end
+catch ex, warning(ex.message);
+end
+delete(hObject);
+
+function pathGds_KeyPressFcn(hObject, eventdata, handles)
+function pathGds_Callback(hObject, eventdata, handles)
+function deviceSearchText_KeyPressFcn(hObject, eventdata, handles)
+function deviceSearchText_Callback(hObject, eventdata, handles)
+
+
+
+% --- Executes during object creation, after setting all properties.
+function startAutoMeasurement_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to startAutoMeasurement (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
