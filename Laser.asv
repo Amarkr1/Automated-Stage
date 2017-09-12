@@ -676,7 +676,7 @@ while inc<3 || ( (IL_opt-IL_opt_old)>.2 && inc<10 ) % either less than 3 iterati
         ILs(i_pos) = measure_det_FA(handles,uiHandle,param_align,det);
     end
     p = polyfit(poss,ILs,2); % figure; plot(poss,[ILs;polyval(p,poss)]);
-    pos_opt = fminsearch(@(pos) -polyval(p,pos),pos0,optimset('Display','off'));
+    pos_opt = fminbnd(@(pos) -polyval(p,pos),pos0-param_align.window/2,pos0+param_align.window/2,optimset('Display','off'));
     eval(['handles.stage.move_',dim_now,'(',num2str(pos_opt-(pos0+param_align.window/2)),');']);
     IL_opt = max([IL_opt_old,measure_det_FA(handles,uiHandle,param_align,det)]);
 end
@@ -1403,7 +1403,7 @@ for i_marker = 1:5
         pos_refs.mtr(i_marker,2) = eval(['str2num(get(handles.motorDev',num2str(i_marker),'y,''String''))']);
     end
 end
-% Amar please clean up these 4 lines
+
 gds_allX = pos_refs.gds(:,1); gds_allY = pos_refs.gds(:,2);
 motor_allX = pos_refs.mtr(:,1); motor_allY = pos_refs.mtr(:,2);
 save('gds_allX.mat','gds_allX'); save('gds_allY.mat','gds_allY');
@@ -1443,7 +1443,7 @@ hw = waitbar(0,'Performing automated testing...');
 for i=1:length(handles.p_all_X)
     waitbar(i/length(handles.p_all_X),hw);
     
-    % Move (in steps to be safe) to the correct position
+    % Move to the correct position
     [xpos,ypos,~] = handles.stage.getPosition();
     diff_x = handles.p_all_X(i) - xpos;
     handles.stage.move_x(diff_x);
@@ -1461,7 +1461,8 @@ for i=1:length(handles.p_all_X)
         load('sweepingData.mat');
         str_path=cell2mat(pathToSave);
         save(str_path,'sweepData');
-        plot(hax,sweepData(:,1),sweepData(:,2:end)); xlabel('Wavelength (nm)'); ylabel('IL (dB)'); axis tight; ylim([-70 0]);
+        plot(hax,sweepData(:,1),sweepData(:,2:end)); axis(hax,'tight'); ylim(hax,[-70 0]);
+        xlabel(hax,'Wavelength (nm)'); ylabel(hax,'IL (dB)'); title(hax,strrep(fileName,'_',' ')); legend(hax,'Port 1','Port 2','Port 3','Port 4');
         saveas(hfig,strrep(str_path,'.mat','.png'),'png');
     end
 end
@@ -1554,6 +1555,12 @@ end
 
 % --- Executes on button press in resetMotorPositions.
 function resetMotorPositions_Callback(hObject, eventdata, handles)
+for i_marker = 1:5
+    eval(['set(str2num(get(handles.motorDev',num2str(i_marker),'x,''String,' ')')])
+%     pos_refs.gds(i_marker,1) = eval(['str2num(get(handles.gdsDev',num2str(i_marker),'x,''String''))']);
+%     pos_refs.gds(i_marker,2) = eval(['str2num(get(handles.gdsDev',num2str(i_marker),'y,''String''))']);
+    
+end
 set(handles.motorDev1x,'String',' ');
 set(handles.motorDev1y,'String',' ');
 set(handles.motorDev2x,'String',' ');
@@ -1912,3 +1919,15 @@ function startAutoMeasurement_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to startAutoMeasurement (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in goIndividualDevices.
+function goIndividualDevices_Callback(hObject, eventdata, handles)
+% hObject    handle to goIndividualDevices (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+contents2 = cellstr(get(handles.list_devs_moveto,'String'));
+dev_now = strsplit(strrep(contents2{get(handles.list_devs_moveto,'Value')},' ',''),',');
+devs_sel(1,:) = handles.matrixOfChip(find(~cellfun('isempty', strfind(handles.devs_all_names,dev_now(1))))+1,:) 
+pos_dev.gds(1,:) = [str2num(devs_sel{1,1}) str2num(devs_sel{1,2})]
+

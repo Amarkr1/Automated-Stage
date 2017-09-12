@@ -1403,12 +1403,12 @@ for i_marker = 1:5
         pos_refs.mtr(i_marker,2) = eval(['str2num(get(handles.motorDev',num2str(i_marker),'y,''String''))']);
     end
 end
-% Amar please clean up these 4 lines
+
 gds_allX = pos_refs.gds(:,1); gds_allY = pos_refs.gds(:,2);
 motor_allX = pos_refs.mtr(:,1); motor_allY = pos_refs.mtr(:,2);
 save('gds_allX.mat','gds_allX'); save('gds_allY.mat','gds_allY');
 save('motor_allX.mat','motor_allX'); save('motor_allY.mat','motor_allY');
-
+save('ReferencePositions.mat','pos_refs')
 if isempty(pos_refs.mtr),     warndlg({'Positions not acquired from the motor coordinates';'Please align it manually or motor might not be connected!'},'Missing Motor Coordinates');
 elseif isempty(pos_refs.gds), warndlg({'Positions not entered for the gds coordinates';'Please enter it manually  !'},'Missing GDS Coordinates');
 else    
@@ -1555,31 +1555,17 @@ end
 
 % --- Executes on button press in resetMotorPositions.
 function resetMotorPositions_Callback(hObject, eventdata, handles)
-set(handles.motorDev1x,'String',' ');
-set(handles.motorDev1y,'String',' ');
-set(handles.motorDev2x,'String',' ');
-set(handles.motorDev2y,'String',' ');
-set(handles.motorDev3x,'String',' ');
-set(handles.motorDev3y,'String',' ');
-set(handles.motorDev4x,'String',' ');
-set(handles.motorDev4y,'String',' ');
-set(handles.motorDev5x,'String',' ');
-set(handles.motorDev5y,'String',' ');
+for i_marker = 1:5
+    eval(['set(handles.motorDev',num2str(i_marker),'x,''String'','' '')'])
+    eval(['set(handles.motorDev',num2str(i_marker),'y,''String'','' '')'])
+end
 
 % --- Executes on button press in resetGdsPositions.
 function resetGdsPositions_Callback(hObject, eventdata, handles)
-set(handles.gdsDev1x,'String',' ');
-set(handles.gdsDev1y,'String',' ');
-set(handles.gdsDev2x,'String',' ');
-set(handles.gdsDev2y,'String',' ');
-set(handles.gdsDev3x,'String',' ');
-set(handles.gdsDev3y,'String',' ');
-set(handles.gdsDev4x,'String',' ');
-set(handles.gdsDev4y,'String',' ');
-set(handles.gdsDev5x,'String',' ');
-set(handles.gdsDev5y,'String',' ');
-
-
+for i_marker = 1:5
+    eval(['set(handles.gdsDev',num2str(i_marker),'x,''String'','' '')'])
+    eval(['set(handles.gdsDev',num2str(i_marker),'y,''String'','' '')'])
+end
 
 % --- Executes on button press in detec1.
 function detec1_Callback(hObject, eventdata, handles)
@@ -1913,3 +1899,24 @@ function startAutoMeasurement_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to startAutoMeasurement (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
+
+
+% --- Executes on button press in goIndividualDevices.
+function goIndividualDevices_Callback(hObject, eventdata, handles)
+% hObject    handle to goIndividualDevices (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+contents2 = cellstr(get(handles.list_devs_moveto,'String'));
+dev_now = strsplit(strrep(contents2{get(handles.list_devs_moveto,'Value')},' ',''),',');
+devs_sel(1,:) = handles.matrixOfChip(find(~cellfun('isempty', strfind(handles.devs_all_names,dev_now(1))))+1,:) ;
+pos_dev.gds(1,:) = [str2num(devs_sel{1,1}) str2num(devs_sel{1,2})];
+load('ReferencePositions.mat');
+motor_pos_dev = mapMotorCoordinates(pos_refs.gds,pos_refs.mtr,pos_dev.gds);
+% Move to the correct position
+[xpos,ypos,~] = handles.stage.getPosition();
+diff_x = motor_pos_dev(1) - xpos;
+handles.stage.move_x(diff_x);
+diff_y = motor_pos_dev(2) - ypos;
+handles.stage.move_y(diff_y);
+optimize_alignment(handles);
+
