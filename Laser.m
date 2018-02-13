@@ -161,10 +161,14 @@ wavelength = str2num(get(handles.wavelengthVal,'String'));
 if(wavelength<=1400)
     calllib('CT400_lib', 'CT400_SetLaser', uiHandle, inputPort, 'ENABLE', 10, 'LS_TunicsT100s_HP', 1260, 1360, 10);
     calllib('CT400_lib', 'CT400_CmdLaser', uiHandle, inputPort, 'ENABLE', wavelength,power);
+    set(handles.startWave,'String',1260);
+    set(handles.stopWave,'String',1360);
 else
     
     calllib('CT400_lib', 'CT400_SetLaser', uiHandle, inputPort, 'ENABLE', 01, 'LS_TunicsT100s_HP', 1500, 1630, 10);
     calllib('CT400_lib', 'CT400_CmdLaser', uiHandle, inputPort, 'ENABLE', wavelength,power);
+    set(handles.startWave,'String',1500);
+    set(handles.stopWave,'String',1600);
 end
 
 % --- Executes on button press in setWavelength.
@@ -639,7 +643,7 @@ function fineAlign_Callback(hObject, eventdata, handles)
 load('parFineAlign.mat');
 set(handles.wavelengthVal,'String',param_align.wavelength);
 optimize_alignment(handles);
-% Align(handles) % Amar replace this with the actual code, no need for separate function if we can call the callback anyways
+% Align(handles) 
 guidata(hObject,handles)
 
 function optimize_alignment(handles)
@@ -652,7 +656,13 @@ det.pP3 = libpointer('doublePtr', zeros(1, 1));
 det.pP4 = libpointer('doublePtr', zeros(1, 1));
 det.pVext = libpointer('doublePtr', zeros(1, 1));
 load('parFineAlign.mat');
-
+if(param_align.wavelength>=1500)
+    calllib('CT400_lib', 'CT400_SetLaser', uiHandle, 1, 'ENABLE', 01, 'LS_TunicsT100s_HP', 1500, 1630, 10);
+    calllib('CT400_lib', 'CT400_CmdLaser', uiHandle, 1, 'ENABLE', param_align.wavelength,param_align.power);
+else
+    calllib('CT400_lib', 'CT400_SetLaser', uiHandle, 1, 'ENABLE', 10, 'LS_TunicsT100s_HP', 1260, 1360, 10);
+    calllib('CT400_lib', 'CT400_CmdLaser', uiHandle, 1, 'ENABLE', param_align.wavelength,param_align.power);
+end
 IL_opt = measure_det_FA(handles,uiHandle,param_align,det); 
 [ori_x, ori_y, ~] = handles.stage.getPosition();
 N = ceil(param_align.window/param_align.step+1);
@@ -1419,8 +1429,9 @@ else
     devs_sel={};
     for i=1:length(devs_sel_names)
         dev_now = strsplit(strrep(devs_sel_names{i},' ',''),',');
-        dev_id_now = dev_now(1);
-        i_dev = find(~cellfun('isempty', strfind(handles.devs_all_names,dev_id_now)));
+        dev_id_now = dev_now{1};
+%         i_dev = find(~cellfun('isempty', strfind(devs_all_names,dev_id_now)));
+        i_dev = find(strcmp(devs_all_names,dev_id_now));
         devs_sel(i,:) = handles.matrixOfChip(i_dev+1,:);        
         pos_devs.gds(i,:) = [str2num(devs_sel{i,1}) str2num(devs_sel{i,2})];
         save_NameFiles(i) = (handles.matrixOfChip(i_dev+1,6));
@@ -1908,7 +1919,9 @@ function goIndividualDevices_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 contents2 = cellstr(get(handles.list_devs_moveto,'String'));
 dev_now = strsplit(strrep(contents2{get(handles.list_devs_moveto,'Value')},' ',''),',');
-devs_sel(1,:) = handles.matrixOfChip(find(~cellfun('isempty', strfind(handles.devs_all_names,dev_now(1))))+1,:) ;
+% devs_sel(1,:) = handles.matrixOfChip(find(~cellfun('isempty', strfind(handles.devs_all_names,dev_now(1))))+1,:) ; %matches the substring of name
+devs_all_names = handles.matrixOfChip(2:end,6); % list of all devices from chip
+devs_sel(1,:) = handles.matrixOfChip(find(strcmp(devs_all_names,dev_now{1}))+1,:);
 pos_dev.gds(1,:) = [str2num(devs_sel{1,1}) str2num(devs_sel{1,2})];
 load('ReferencePositions.mat');
 motor_pos_dev = mapMotorCoordinates(pos_refs.gds,pos_refs.mtr,pos_dev.gds);
