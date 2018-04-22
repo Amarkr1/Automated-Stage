@@ -228,7 +228,7 @@ if exist(fileName)
     set(handles.popupmenu3,'Value',state.det_main);
     delete(fileName);
 end
-
+ 
 
 function detector_Callback(hObject, eventdata, handles)
 % hObject    handle to detector (see GCBO)
