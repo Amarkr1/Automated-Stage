@@ -1997,77 +1997,35 @@ function startAutoMeasurement_Callback(hObject, eventdata, handles)
 global pierror; global uiHandle;
 hfig = figure; hax = axes('Parent',hfig);
 hw = waitbar(0,'Performing automated testing...');
-for i=1:60
+for i=1:length(handles.p_all_X)
     folderPath = handles.savePath.String;
     fileName = handles.all_save_NameFiles(i);
-    
-    waitbar(i/60,hw,sprintf(['Performing automated testing : ' num2str(i) '/' num2str(length(handles.p_all_X)) ]));
-    
-    % Move to the correct position
-    [xpos,ypos,~] = handles.stage.getPosition();
-    diff_x = handles.p_all_X(i) - xpos;
-    handles.stage.move_x(diff_x);
-    diff_y = handles.p_all_Y(i) - ypos;
-    handles.stage.move_y(diff_y);
-    optimize_alignment(handles);
-    
-    % Analysis
-    performSweep(handles);
-    pause(2);
-%     if(mod(i,40)==0)
-        % Initialize
-%         disp([num2str(i) ' : FLUSHING MEMORY']);
-%         YenistaTunicsCT400Launcher;
-%     end
+    totalIter = get(handles.iterDevices,'Value');
+    for iter = 1:totalIter
+        waitbar(i/length(handles.p_all_X),hw,sprintf(['Performing automated testing : ' num2str(i) '/ ' num2str(length(handles.p_all_X)) '\n' 'Iteration: ' ...
+            num2str(iter) '/ ' num2str(totalIter)]));
 
-    pathToSave = [folderPath,'\',fileName,'.mat'];
-    if isempty(folderPath), warndlg({ strcat('Please enter a valid path to save the files')},'No file Path');
-    else
-        load('sweepingData.mat');
-        str_path=cell2mat(pathToSave);
-        save(str_path,'sweepData');
-        plot(hax,sweepData(:,1),sweepData(:,2:end)); axis(hax,'tight'); ylim(hax,[-70 0]);
-        xlabel(hax,'Wavelength (nm)'); ylabel(hax,'IL (dB)'); title(hax,strrep(fileName,'_',' ')); legend(hax,'Port 1','Port 2','Port 3','Port 4');
-        saveas(hfig,strrep(str_path,'.mat','.png'),'png');
-%         uiHandle = calllib('CT400_lib', 'CT400_Init', pierror);
-%         calllib('CT400_lib', 'CT400_Close', uiHandle);
-    end
-end
-pause(5);
-for i=i+1:length(handles.p_all_X)
-    folderPath = handles.savePath.String;
-    fileName = handles.all_save_NameFiles(i);
-    
-    waitbar(i/length(handles.p_all_X),hw,sprintf(['Performing automated testing : ' num2str(i) '/' num2str(length(handles.p_all_X)) ]));
-    
-    % Move to the correct position
-    [xpos,ypos,~] = handles.stage.getPosition();
-    diff_x = handles.p_all_X(i) - xpos;
-    handles.stage.move_x(diff_x);
-    diff_y = handles.p_all_Y(i) - ypos;
-    handles.stage.move_y(diff_y);
-    optimize_alignment(handles);
-    
-    % Analysis
-    performSweep(handles);
-    pause(2);
-%     if(mod(i,40)==0)
-%         % Initialize
-%         disp([num2str(i) ' : FLUSHING MEMORY']);
-%         YenistaTunicsCT400Launcher;
-%     end
+        % Move to the correct position
+        [xpos,ypos,~] = handles.stage.getPosition();
+        diff_x = handles.p_all_X(i) - xpos;
+        handles.stage.move_x(diff_x);
+        diff_y = handles.p_all_Y(i) - ypos;
+        handles.stage.move_y(diff_y);
+        optimize_alignment(handles);
 
-    pathToSave = [folderPath,'\',fileName,'.mat'];
-    if isempty(folderPath), warndlg({ strcat('Please enter a valid path to save the files')},'No file Path');
-    else
-        load('sweepingData.mat');
-        str_path=cell2mat(pathToSave);
-        save(str_path,'sweepData');
-        plot(hax,sweepData(:,1),sweepData(:,2:end)); axis(hax,'tight'); ylim(hax,[-70 0]);
-        xlabel(hax,'Wavelength (nm)'); ylabel(hax,'IL (dB)'); title(hax,strrep(fileName,'_',' ')); legend(hax,'Port 1','Port 2','Port 3','Port 4');
-        saveas(hfig,strrep(str_path,'.mat','.png'),'png');
-%         uiHandle = calllib('CT400_lib', 'CT400_Init', pierror);
-%         calllib('CT400_lib', 'CT400_Close', uiHandle);
+        % Analysis
+        performSweep(handles);
+        pause(2);
+        pathToSave = [folderPath,'\',fileName,'_',num2str(iter),'.mat'];
+        if isempty(folderPath), warndlg({ strcat('Please enter a valid path to save the files')},'No file Path');
+        else
+            load('sweepingData.mat');
+            str_path=cell2mat(pathToSave);
+            save(str_path,'sweepData');
+            plot(hax,sweepData(:,1),sweepData(:,2:end)); axis(hax,'tight'); ylim(hax,[-70 0]);
+            xlabel(hax,'Wavelength (nm)'); ylabel(hax,'IL (dB)'); title(hax,strrep(fileName,'_',' ')); legend(hax,'Port 1','Port 2','Port 3','Port 4');
+            saveas(hfig,strrep(str_path,'.mat','.png'),'png');
+        end
     end
 end
 close(hfig); close(hw);
@@ -2569,3 +2527,26 @@ function overplot_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of overplot
+
+
+% --- Executes on selection change in iterDevices.
+function iterDevices_Callback(hObject, eventdata, handles)
+% hObject    handle to iterDevices (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns iterDevices contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from iterDevices
+
+
+% --- Executes during object creation, after setting all properties.
+function iterDevices_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to iterDevices (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
