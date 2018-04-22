@@ -1997,10 +1997,15 @@ function startAutoMeasurement_Callback(hObject, eventdata, handles)
 global pierror; global uiHandle;
 hfig = figure; hax = axes('Parent',hfig);
 hw = waitbar(0,'Performing automated testing...');
+folderPath = handles.savePath.String;
+fid = fopen([folderPath '\' 'Devices scanned.txt'],'w');
+
+
 for i=1:length(handles.p_all_X)
-    folderPath = handles.savePath.String;
+    
     fileName = handles.all_save_NameFiles(i);
     totalIter = get(handles.iterDevices,'Value');
+    fprintf(fid,'%s\n', fileName{1});
     for iter = 1:totalIter
         waitbar(i/length(handles.p_all_X),hw,sprintf(['Performing automated testing : ' num2str(i) '/ ' num2str(length(handles.p_all_X)) '\n' 'Iteration: ' ...
             num2str(iter) '/ ' num2str(totalIter)]));
@@ -2028,6 +2033,7 @@ for i=1:length(handles.p_all_X)
         end
     end
 end
+fclose(fid);
 close(hfig); close(hw);
 
 guidata(hObject,handles)
